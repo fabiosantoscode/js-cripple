@@ -9,7 +9,7 @@
     };
 
     var swap = function (old, new_, force) {
-        if (old || force) {
+        if (old || force === true) {
             old = new_;
         }
     };
@@ -24,12 +24,37 @@
         var ie = find('ie6', tags) ? 6:
                  find('ie7', tags) ? 7:
                  find('ie8', tags) ? 8:
+                 find('ie9', tags) ? 9:
                  undefined;
         
         // Event Handling
         (function () {
+            var elmProto = Element.prototype
             if (ie && ie < 8) {
-                disable(Element.prototype, 'addEventHandler');
+                var ael = elmProto.addEventListener;
+                var rel = elmProto.removeEventListener;
+                var events = [];
+                
+                elmProto.attachEvent = function (evt, cb) {
+                    var evtname = [].slice.call(evt, 2, Infinity);  // remove the "on" part
+                    events.push(cb);
+                    ael.call(this, evtname, function (e) {
+                        window.event = e;
+                        cb.call(this);  // TODO figure out what to do with return false
+                        window.event = null;
+                    }, false);
+                };
+
+                elmProto.detachEvent = function (evt, func) {
+                    var evtname = [].slice.call(evt, 2, Infinity);  // remove the "on" part
+                    for (var i = 0, len = events.length; i < len; i++) if (events === func) {
+                        break;
+                    }
+                    rel.call(this, evtname, 
+                }
+
+                disable(elmProto, 'addEventListener');
+                disable(elmProto, 'removeEventListener');
             }
             // TODO gold mine of bugs for each IE version with javascript.
         }());
