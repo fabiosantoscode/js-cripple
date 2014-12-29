@@ -5,7 +5,11 @@
     };
     
     var disable = function (object, attr) {
-        object[attr] = undefined;
+        try {
+            delete object[attr];
+        } catch(e) {
+            object[attr] = undefined;
+        }
     };
 
     var swap = function (old, new_, force) {
