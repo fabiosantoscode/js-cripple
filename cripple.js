@@ -31,9 +31,9 @@
                  undefined;
 
         if (es === undefined && ie !== undefined) {
-            es = ie < 8 ?
-                3 :  // ES3 in IE7
-                5;   // ES5 in IE8
+            es = ie < 9 ?
+                3 :  // ES3 in IE7 and 8 (although 8 implements some es5)
+                5;   // ES5 in IE9
         }
 
         if (es === undefined && ie === undefined) {
@@ -156,10 +156,7 @@
             if (es && es < 5) {
                 disable(Object, 'keys');
                 disable(Object, 'create');
-                disable(Object, 'defineProperty');
                 disable(Object, 'defineProperties');
-                disable(Object, 'getOwnPropertyDescriptor');
-                disable(Object, 'getOwnPropertyNames');
                 disable(Object, 'getPrototypeOf');
                 disable(Object, 'preventExtensions');
                 disable(Object, 'isExtensible');
@@ -167,6 +164,12 @@
                 disable(Object, 'isSealed');
                 disable(Object, 'freeze');
                 disable(Object, 'isFrozen');
+                disable(Object, 'getOwnPropertyNames');
+                if (!ie || ie < 8) {
+                    // IE8 implements these, don't disable them
+                    disable(Object, 'defineProperty');
+                    disable(Object, 'getOwnPropertyDescriptor');
+                }
             }
             if (es && es < 6) {
                 disable(Object, 'is');
@@ -180,7 +183,7 @@
         }());
 
         // JSON
-        if (es < 5) {
+        if (es < 5 && ( !ie || ie < 8 /* Because IE8 implements this */)) {
             disable(globalObj, 'JSON');
         }
 
@@ -191,7 +194,7 @@
                 disable(dateProto, 'toTimeString');
             }
             if (es && es < 5) {
-                disable(dateProto, 'now');
+                disable(Date, 'now');
                 disable(dateProto, 'toISOString');
             }
             // TODO Date.toDateString docs were inconclusive about when it came up
