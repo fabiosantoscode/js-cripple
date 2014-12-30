@@ -173,11 +173,6 @@
             }
             if (es && es < 6) {
                 disable(Object, 'is');
-                disable(Object, 'is');
-                disable(Object, 'is');
-                disable(Object, 'is');
-                disable(Object, 'is');
-                
             }
             // TODO __proto__
         }());
