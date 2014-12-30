@@ -200,7 +200,51 @@
             // TODO Date.toDateString docs were inconclusive about when it came up
         }());
 
-        // TODO getComputedStyle
-        // TODO focus()ing elements which are hidden throws an error
+        // getComputedStyle doesn't exist in oldIE, should use .currentStyle
+        (function () {
+            if (ie > 8) { return; }  // TODO really IE8?
+            // Turns out oldIE implements quite a few things,
+            // but it doesn't list the properties with dashed-values, and
+            // it's in each element, not in the window.
+            var elmProto = Element.prototype;
+
+            disable(CSSStyleDeclaration.prototype, 'getPropertyCSSValue');
+
+            var _getComputedStyle = window.getComputedStyle;
+            disable(window, 'getComputedStyle');
+
+            Object.defineProperty(elmProto, 'currentStyle', {
+                get: function () {
+                    return removeDashedProps(_getComputedStyle.call(window, this));
+                }
+            });
+
+            var removeDashedProps = function (computedStyle) {
+                var out = {};
+                for (var k in computedStyle)
+                    if (computedStyle.hasOwnProperty(k)) {
+                        if (/-/.test(k)) { disable(computedStyle, k); }
+                    }
+                }
+                return computedStyle;
+            }
+        }());
+
+        // Focusing elements in oldIE can throw an error
+        (function () {
+            if (ie > 8) { return; }  // TODO really IE8?
+            var elmProto = Element.prototype;
+            var _focus = elmProto.focus;
+            elmProto.focus = function () {
+                var invisible = getComputedStyle(this).display === 'none';
+                var disabled = this.disabled;
+                var typeNotAcceptsFocus = false;  // TODO figure out what this is
+
+                if (invisible || disabled || typeNotAcceptsFocus) {
+                    throw new Error('Can\'t move focus to the control because it is invisible, not enabled, or of a type that does not accept the focus.');
+                }
+                _focus.apply(this, arguments);
+            };
+        }());
     };
 }(window));
